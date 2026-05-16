@@ -2,6 +2,9 @@ name: Knowledge Graph Write
 
 on:
   workflow_dispatch:
+  
+  permissions:
+  contents: write
 
 jobs:
   write-knowledge:
