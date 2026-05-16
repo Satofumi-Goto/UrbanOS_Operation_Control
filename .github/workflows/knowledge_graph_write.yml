@@ -41,5 +41,5 @@ jobs:
         env:
           GH_WRITE_TOKEN: ${{ secrets.GH_WRITE_TOKEN }}
         run: |
-          git remote set-url origin https://x-access-token:${GH_WRITE_TOKEN}@github.com/Satofumi-Goto/UrbanOS_Operation_Control.git
+          git remote set-url origin https://x-access-token:$GH_WRITE_TOKEN@github.com/Satofumi-Goto/UrbanOS_Operation_Control.git
           git push origin main
