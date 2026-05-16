@@ -7,6 +7,18 @@ on:
         description: "Branch name"
         required: true
         default: "knowledge-update"
+      category:
+        description: "Knowledge category"
+        required: true
+        default: "Collapse"
+      console:
+        description: "Target console"
+        required: true
+        default: "Urban_Operation_Console"
+      topic:
+        description: "Topic name"
+        required: true
+        default: "Queue_Saturation"
 
 permissions:
   contents: write
@@ -24,31 +36,48 @@ jobs:
         run: |
           git checkout -b ${{ github.event.inputs.branch_name }}
 
-      - name: Create Generated Folder
+      - name: Create Knowledge Folder
         run: |
-          mkdir -p GENERATED_KNOWLEDGE
+          mkdir -p "GENERATED_KNOWLEDGE/${{ github.event.inputs.category }}/${{ github.event.inputs.console }}"
 
-      - name: Generate Placeholder
+      - name: Generate Knowledge Node
         run: |
-          cat << 'EOF' > GENERATED_KNOWLEDGE/README.md
-          # GENERATED KNOWLEDGE
+          cat << 'EOF' > "GENERATED_KNOWLEDGE/${{ github.event.inputs.category }}/${{ github.event.inputs.console }}/${{ github.event.inputs.topic }}.md"
+          # ${{ github.event.inputs.topic }}
 
-          This folder is reserved for AI-generated knowledge graph nodes.
+          ## Category
+          ${{ github.event.inputs.category }}
 
-          Future workflow:
-          ChatGPT
-          → Pull Request
-          → Human Approval
-          → Merge
+          ## Target Layer
+          ${{ github.event.inputs.console }}
+
+          ## Definition
+          This node defines how ${{ github.event.inputs.topic }} functions within the Urban OS knowledge graph.
+
+          ## Operational Meaning
+          This topic connects collapse, operation, UX, PL, KPI, and control logic into executable urban mobility knowledge.
+
+          ## Graph Role
+          - [[Collapse]]
+          - [[Operation]]
+          - [[UX]]
+          - [[PL_Business]]
+          - [[KPI]]
+          - [[Control]]
+
+          ## Related
+          - [[Urban_Operation_Console]]
+          - [[Service_Hub_Console]]
+          - [[Fleet_Operation_Console]]
+          - [[Seneschal]]
           EOF
 
       - name: Commit Changes
         run: |
           git config --global user.name "ChatGPT-Knowledge-Bot"
           git config --global user.email "bot@openai.com"
-
           git add .
-          git commit -m "Initialize knowledge graph workflow" || echo "No changes"
+          git commit -m "Add knowledge node: ${{ github.event.inputs.topic }}" || echo "No changes"
 
       - name: Push Branch
         env:
@@ -66,7 +95,7 @@ jobs:
           -H "Accept: application/vnd.github+json" \
           https://api.github.com/repos/Satofumi-Goto/UrbanOS_Operation_Control/pulls \
           -d '{
-            "title":"Knowledge Graph Update",
+            "title":"Knowledge Graph Update: ${{ github.event.inputs.topic }}",
             "head":"'"${{ github.event.inputs.branch_name }}"'",
             "base":"main",
             "body":"Automated knowledge graph update PR."
