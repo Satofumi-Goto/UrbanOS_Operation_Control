@@ -1,0 +1,45 @@
+name: Knowledge Graph Write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  write-knowledge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Generated Folder
+        run: |
+          mkdir -p GENERATED_KNOWLEDGE
+
+      - name: Generate Placeholder
+        run: |
+          cat << 'EOF' > GENERATED_KNOWLEDGE/README.md
+          # GENERATED KNOWLEDGE
+
+          This folder is reserved for AI-generated knowledge graph nodes.
+
+          Future workflow:
+          ChatGPT
+          → Pull Request
+          → Human Approval
+          → Merge
+          EOF
+
+      - name: Commit Changes
+        run: |
+          git config --global user.name "ChatGPT-Knowledge-Bot"
+          git config --global user.email "bot@openai.com"
+
+          git add .
+          git commit -m "Initialize knowledge graph workflow" || echo "No changes"
+
+      - name: Push Changes
+        env:
+          GH_WRITE_TOKEN: ${{ secrets.GH_WRITE_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${GH_WRITE_TOKEN}@github.com/Satofumi-Goto/UrbanOS_Operation_Control.git
+          git push origin main
