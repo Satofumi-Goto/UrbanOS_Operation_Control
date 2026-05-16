@@ -1,4 +1,4 @@
-name: Knowledge Graph Write
+name: Knowledge Graph Mass Generator
 
 on:
   workflow_dispatch:
@@ -6,26 +6,14 @@ on:
       branch_name:
         description: "Branch name"
         required: true
-        default: "knowledge-update"
-      category:
-        description: "Knowledge category"
-        required: true
-        default: "Collapse"
-      console:
-        description: "Target console"
-        required: true
-        default: "Urban_Operation_Console"
-      topic:
-        description: "Topic name"
-        required: true
-        default: "Queue_Saturation"
+        default: "mass-knowledge-update"
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  write-knowledge:
+  generate-knowledge:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,48 +24,152 @@ jobs:
         run: |
           git checkout -b ${{ github.event.inputs.branch_name }}
 
-      - name: Create Knowledge Folder
+      - name: Create Folder Structure
         run: |
-          mkdir -p "GENERATED_KNOWLEDGE/${{ github.event.inputs.category }}/${{ github.event.inputs.console }}"
+          mkdir -p GENERATED_KNOWLEDGE
 
-      - name: Generate Knowledge Node
+          categories=(
+            "01_Collapse"
+            "02_Operation"
+            "03_UX"
+            "04_PL_Business"
+            "05_KPI"
+            "06_Control"
+          )
+
+          consoles=(
+            "Overall"
+            "Urban_Operation_Console"
+            "Service_Hub_Console"
+            "Fleet_Operation_Console"
+            "Seneschal"
+          )
+
+          for category in "${categories[@]}"; do
+            for console in "${consoles[@]}"; do
+              mkdir -p "GENERATED_KNOWLEDGE/$category/$console"
+            done
+          done
+
+      - name: Generate Collapse Knowledge
         run: |
-          cat << 'EOF' > "GENERATED_KNOWLEDGE/${{ github.event.inputs.category }}/${{ github.event.inputs.console }}/${{ github.event.inputs.topic }}.md"
-          # ${{ github.event.inputs.topic }}
+          collapse_topics=(
+            "Queue_Saturation"
+            "Dispatch_Collapse"
+            "Fleet_Deadlock"
+            "Node_Gridlock"
+            "Revenue_Collapse"
+            "ETA_Collapse"
+            "Synchronization_Failure"
+            "ODD_Fragmentation"
+            "Energy_Propagation"
+            "Utilization_Collapse"
+          )
 
-          ## Category
-          ${{ github.event.inputs.category }}
+          consoles=(
+            "Overall"
+            "Urban_Operation_Console"
+            "Service_Hub_Console"
+            "Fleet_Operation_Console"
+            "Seneschal"
+          )
 
-          ## Target Layer
-          ${{ github.event.inputs.console }}
+          for topic in "${collapse_topics[@]}"; do
+            for console in "${consoles[@]}"; do
 
-          ## Definition
-          This node defines how ${{ github.event.inputs.topic }} functions within the Urban OS knowledge graph.
+              cat << EOF > "GENERATED_KNOWLEDGE/01_Collapse/$console/${topic}.md"
+# ${topic}
 
-          ## Operational Meaning
-          This topic connects collapse, operation, UX, PL, KPI, and control logic into executable urban mobility knowledge.
+## Layer
+01_Collapse
 
-          ## Graph Role
-          - [[Collapse]]
-          - [[Operation]]
-          - [[UX]]
-          - [[PL_Business]]
-          - [[KPI]]
-          - [[Control]]
+## Console
+${console}
 
-          ## Related
-          - [[Urban_Operation_Console]]
-          - [[Service_Hub_Console]]
-          - [[Fleet_Operation_Console]]
-          - [[Seneschal]]
-          EOF
+## Definition
+${topic} represents a collapse propagation condition within the Urban OS operational structure.
+
+## Operational Meaning
+This node defines how ${topic} affects synchronized urban mobility execution.
+
+## Collapse Relation
+- Queue
+- Dispatch
+- Fleet
+- ETA
+- Revenue
+- Node
+- ODD
+- Synchronization
+
+## Related
+- [[Queue_Saturation]]
+- [[Dispatch_Collapse]]
+- [[Fleet_Deadlock]]
+- [[Revenue_Collapse]]
+EOF
+
+            done
+          done
+
+      - name: Generate Operation Knowledge
+        run: |
+          operation_topics=(
+            "Dispatch_Rebalance_Execution"
+            "Fleet_Synchronization"
+            "Node_Turnaround"
+            "Shared_Ride_Operation"
+            "ETA_Recalculation"
+            "Continuous_Operation"
+            "Queue_Balancing"
+            "Dispatch_Restriction"
+            "Fleet_Reallocation"
+            "Urban_Execution_State"
+          )
+
+          consoles=(
+            "Overall"
+            "Urban_Operation_Console"
+            "Service_Hub_Console"
+            "Fleet_Operation_Console"
+            "Seneschal"
+          )
+
+          for topic in "${operation_topics[@]}"; do
+            for console in "${consoles[@]}"; do
+
+              cat << EOF > "GENERATED_KNOWLEDGE/02_Operation/$console/${topic}.md"
+# ${topic}
+
+## Layer
+02_Operation
+
+## Console
+${console}
+
+## Definition
+${topic} defines operational synchronization behavior within Urban OS execution.
+
+## Operational Meaning
+This node explains how ${topic} stabilizes autonomous mobility execution.
+
+## Related
+- [[Fleet_Synchronization]]
+- [[Dispatch_Collapse]]
+- [[Queue_Saturation]]
+- [[Continuous_Operation]]
+EOF
+
+            done
+          done
 
       - name: Commit Changes
         run: |
           git config --global user.name "ChatGPT-Knowledge-Bot"
           git config --global user.email "bot@openai.com"
+
           git add .
-          git commit -m "Add knowledge node: ${{ github.event.inputs.topic }}" || echo "No changes"
+          git commit -m "Generate mass knowledge graph pack" || echo "No changes"
 
       - name: Push Branch
         env:
@@ -95,8 +187,8 @@ jobs:
           -H "Accept: application/vnd.github+json" \
           https://api.github.com/repos/Satofumi-Goto/UrbanOS_Operation_Control/pulls \
           -d '{
-            "title":"Knowledge Graph Update: ${{ github.event.inputs.topic }}",
+            "title":"Mass Knowledge Graph Generation",
             "head":"'"${{ github.event.inputs.branch_name }}"'",
             "base":"main",
-            "body":"Automated knowledge graph update PR."
+            "body":"Automated mass knowledge graph generation PR."
           }'
