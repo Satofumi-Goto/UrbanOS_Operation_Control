@@ -2,9 +2,15 @@ name: Knowledge Graph Write
 
 on:
   workflow_dispatch:
-  
+    inputs:
+      branch_name:
+        description: "Branch name"
+        required: true
+        default: "knowledge-update"
+
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   write-knowledge:
@@ -13,6 +19,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Create Branch
+        run: |
+          git checkout -b ${{ github.event.inputs.branch_name }}
 
       - name: Create Generated Folder
         run: |
@@ -40,9 +50,24 @@ jobs:
           git add .
           git commit -m "Initialize knowledge graph workflow" || echo "No changes"
 
-      - name: Push Changes
+      - name: Push Branch
         env:
           GH_WRITE_TOKEN: ${{ secrets.GH_WRITE_TOKEN }}
         run: |
           git remote set-url origin https://x-access-token:$GH_WRITE_TOKEN@github.com/Satofumi-Goto/UrbanOS_Operation_Control.git
-          git push origin main
+          git push origin ${{ github.event.inputs.branch_name }}
+
+      - name: Create Pull Request
+        env:
+          GH_WRITE_TOKEN: ${{ secrets.GH_WRITE_TOKEN }}
+        run: |
+          curl -X POST \
+          -H "Authorization: token $GH_WRITE_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/Satofumi-Goto/UrbanOS_Operation_Control/pulls \
+          -d '{
+            "title":"Knowledge Graph Update",
+            "head":"'"${{ github.event.inputs.branch_name }}"'",
+            "base":"main",
+            "body":"Automated knowledge graph update PR."
+          }'
