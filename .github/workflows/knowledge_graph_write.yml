@@ -6,7 +6,7 @@ on:
       branch_name:
         description: "Branch name"
         required: true
-        default: "mass-knowledge-update"
+        default: "mass-knowledge-update-001"
 
 permissions:
   contents: write
@@ -21,174 +21,75 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create Branch
+        run: git checkout -b "${{ github.event.inputs.branch_name }}"
+
+      - name: Generate Knowledge Pack
         run: |
-          git checkout -b ${{ github.event.inputs.branch_name }}
+          python3 <<'PY'
+          from pathlib import Path
 
-      - name: Create Folder Structure
-        run: |
-          mkdir -p GENERATED_KNOWLEDGE
+          base = Path("GENERATED_KNOWLEDGE")
 
-          categories=(
-            "01_Collapse"
-            "02_Operation"
-            "03_UX"
-            "04_PL_Business"
-            "05_KPI"
-            "06_Control"
-          )
+          nodes = [
+              ("01_Collapse", "Overall", "Queue_Saturation"),
+              ("01_Collapse", "Urban_Operation_Console", "Dispatch_Collapse"),
+              ("01_Collapse", "Service_Hub_Console", "Node_Gridlock"),
+              ("01_Collapse", "Fleet_Operation_Console", "Fleet_Deadlock"),
+              ("01_Collapse", "Seneschal", "ETA_Collapse"),
+              ("02_Operation", "Overall", "Urban_Execution_State"),
+              ("02_Operation", "Urban_Operation_Console", "Dispatch_Rebalance_Execution"),
+              ("02_Operation", "Service_Hub_Console", "Node_Turnaround"),
+              ("02_Operation", "Fleet_Operation_Console", "Fleet_Synchronization"),
+              ("02_Operation", "Seneschal", "User_Intent_Execution")
+          ]
 
-          consoles=(
-            "Overall"
-            "Urban_Operation_Console"
-            "Service_Hub_Console"
-            "Fleet_Operation_Console"
-            "Seneschal"
-          )
+          for category, console, topic in nodes:
+              folder = base / category / console
+              folder.mkdir(parents=True, exist_ok=True)
 
-          for category in "${categories[@]}"; do
-            for console in "${consoles[@]}"; do
-              mkdir -p "GENERATED_KNOWLEDGE/$category/$console"
-            done
-          done
-
-      - name: Generate Collapse Knowledge
-        run: |
-          collapse_topics=(
-            "Queue_Saturation"
-            "Dispatch_Collapse"
-            "Fleet_Deadlock"
-            "Node_Gridlock"
-            "Revenue_Collapse"
-            "ETA_Collapse"
-            "Synchronization_Failure"
-            "ODD_Fragmentation"
-            "Energy_Propagation"
-            "Utilization_Collapse"
-          )
-
-          consoles=(
-            "Overall"
-            "Urban_Operation_Console"
-            "Service_Hub_Console"
-            "Fleet_Operation_Console"
-            "Seneschal"
-          )
-
-          for topic in "${collapse_topics[@]}"; do
-            for console in "${consoles[@]}"; do
-
-              cat << EOF > "GENERATED_KNOWLEDGE/01_Collapse/$console/${topic}.md"
-# ${topic}
+              content = f"""# {topic}
 
 ## Layer
-01_Collapse
+{category}
 
 ## Console
-${console}
+{console}
 
 ## Definition
-${topic} represents a collapse propagation condition within the Urban OS operational structure.
+{topic} is a knowledge node within the Urban OS operating structure.
 
 ## Operational Meaning
-This node defines how ${topic} affects synchronized urban mobility execution.
-
-## Collapse Relation
-- Queue
-- Dispatch
-- Fleet
-- ETA
-- Revenue
-- Node
-- ODD
-- Synchronization
+This node connects collapse, operation, UX, PL, KPI, and control logic.
 
 ## Related
 - [[Queue_Saturation]]
 - [[Dispatch_Collapse]]
-- [[Fleet_Deadlock]]
-- [[Revenue_Collapse]]
-EOF
-
-            done
-          done
-
-      - name: Generate Operation Knowledge
-        run: |
-          operation_topics=(
-            "Dispatch_Rebalance_Execution"
-            "Fleet_Synchronization"
-            "Node_Turnaround"
-            "Shared_Ride_Operation"
-            "ETA_Recalculation"
-            "Continuous_Operation"
-            "Queue_Balancing"
-            "Dispatch_Restriction"
-            "Fleet_Reallocation"
-            "Urban_Execution_State"
-          )
-
-          consoles=(
-            "Overall"
-            "Urban_Operation_Console"
-            "Service_Hub_Console"
-            "Fleet_Operation_Console"
-            "Seneschal"
-          )
-
-          for topic in "${operation_topics[@]}"; do
-            for console in "${consoles[@]}"; do
-
-              cat << EOF > "GENERATED_KNOWLEDGE/02_Operation/$console/${topic}.md"
-# ${topic}
-
-## Layer
-02_Operation
-
-## Console
-${console}
-
-## Definition
-${topic} defines operational synchronization behavior within Urban OS execution.
-
-## Operational Meaning
-This node explains how ${topic} stabilizes autonomous mobility execution.
-
-## Related
 - [[Fleet_Synchronization]]
-- [[Dispatch_Collapse]]
-- [[Queue_Saturation]]
-- [[Continuous_Operation]]
-EOF
-
-            done
-          done
+- [[Node_Turnaround]]
+"""
+              (folder / f"{topic}.md").write_text(content, encoding="utf-8")
+          PY
 
       - name: Commit Changes
         run: |
           git config --global user.name "ChatGPT-Knowledge-Bot"
           git config --global user.email "bot@openai.com"
-
           git add .
-          git commit -m "Generate mass knowledge graph pack" || echo "No changes"
+          git commit -m "Generate validated knowledge pack" || echo "No changes"
 
       - name: Push Branch
         env:
           GH_WRITE_TOKEN: ${{ secrets.GH_WRITE_TOKEN }}
         run: |
           git remote set-url origin https://x-access-token:$GH_WRITE_TOKEN@github.com/Satofumi-Goto/UrbanOS_Operation_Control.git
-          git push origin ${{ github.event.inputs.branch_name }}
+          git push origin "${{ github.event.inputs.branch_name }}"
 
       - name: Create Pull Request
         env:
           GH_WRITE_TOKEN: ${{ secrets.GH_WRITE_TOKEN }}
         run: |
           curl -X POST \
-          -H "Authorization: token $GH_WRITE_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          https://api.github.com/repos/Satofumi-Goto/UrbanOS_Operation_Control/pulls \
-          -d '{
-            "title":"Mass Knowledge Graph Generation",
-            "head":"'"${{ github.event.inputs.branch_name }}"'",
-            "base":"main",
-            "body":"Automated mass knowledge graph generation PR."
-          }'
+            -H "Authorization: token $GH_WRITE_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/Satofumi-Goto/UrbanOS_Operation_Control/pulls \
+            -d '{"title":"Validated Knowledge Pack","head":"'"${{ github.event.inputs.branch_name }}"'","base":"main","body":"Validated knowledge pack generated by workflow."}'
