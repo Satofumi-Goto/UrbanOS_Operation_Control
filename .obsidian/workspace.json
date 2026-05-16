@@ -110,6 +110,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "06_Collapse/Dispatch Collapse.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +120,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "バックリンク"
+              "title": "Dispatch Collapseへのバックリンク"
             }
           },
           {
@@ -128,11 +129,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "06_Collapse/Dispatch Collapse.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "アウトゴーイングリンク"
+              "title": "Dispatch Collapseからのアウトゴーイングリンク"
             }
           },
           {
@@ -170,12 +172,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "06_Collapse/Dispatch Collapse.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "アウトライン"
+              "title": "Dispatch Collapseのアウトライン"
             }
           }
         ]
@@ -196,8 +199,9 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "47ad894875a9a003",
+  "active": "d5765264d7b5393b",
   "lastOpenFiles": [
+    "00_Inbox/Trips_Feasibility.md",
     "06_Collapse/Dispatch Collapse.md",
     "06_Collapse/無題のフォルダ",
     "05_Operation/Trips Feasibility.md",
